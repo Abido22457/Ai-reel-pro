@@ -1,0 +1,200 @@
+{
+  "name": "AI Video 3x Hourly",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "value": 60
+            }
+          ]
+        }
+      },
+      "id": "1",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "for (let i = 0; i < 3; i++) {\n  items.push({json: {video: i+1}});\n}\nreturn items;"
+      },
+      "id": "2",
+      "name": "Loop 3 Videos",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.trendanalyzer.ai/analyze",
+        "method": "GET",
+        "queryParametersUi": {
+          "parameter": [
+            { "name": "topic", "value": "latest" }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "Authorization", "value": "Bearer {{$env.TREND_API_KEY}}" }
+          ]
+        }
+      },
+      "id": "3",
+      "name": "Trend Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "operation": "chat",
+        "model": "gpt-4",
+        "messages": [
+          {
+            "role": "system",
+            "content": "أنت كاتب سكربتات فيديو إبداعي."
+          },
+          {
+            "role": "user",
+            "content": "أنشئ سكربت فيديو إبداعي عن الترند: {{$json[\"body\"][\"top_trend\"]}}, أضف Emojis وعناوين جذابة."
+          }
+        ]
+      },
+      "id": "4",
+      "name": "OpenAI Script",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [1000, 300],
+      "credentials": { "openAiApi": { "id": "openai_credential", "name": "OpenAI" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/{{$env.ELEVENLABS_VOICE_ID}}",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": true,
+        "bodyParametersUi": {
+          "parameter": [
+            { "name": "text", "value": "={{$json[\"choices\"][0][\"message\"][\"content\"]}}" },
+            { "name": "voice_settings", "value": "{\"stability\":0.6,\"similarity_boost\":0.7}" }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "xi-api-key", "value": "{{$env.ELEVENLABS_API_KEY}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        }
+      },
+      "id": "5",
+      "name": "ElevenLabs Voice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.pexels.com/v1/search",
+        "method": "GET",
+        "queryParametersUi": {
+          "parameter": [
+            { "name": "query", "value": "={{$node[\"Trend Analysis\"].json[\"body\"][\"top_trend\"]}}" },
+            { "name": "per_page", "value": "3" }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "Authorization", "value": "{{$env.PEXELS_API_KEY}}" }
+          ]
+        }
+      },
+      "id": "6",
+      "name": "Pexels Media",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1500, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://open.capcutapi.com/v1/video/create",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": true,
+        "bodyParametersUi": {
+          "parameter": [
+            { "name": "images", "value": "[\"={{$json[\"body\"][\"photos\"][0][\"src\"][\"original\"]}}\"]" },
+            { "name": "audio", "value": "={{$node[\"ElevenLabs Voice\"].json[\"body\"][\"audio_url\"]}}" },
+            { "name": "music", "value": "={{$node[\"Trend Analysis\"].json[\"body\"][\"trending_music_url\"]}}" },
+            { "name": "effects", "value": "cinematic,zoom" },
+            { "name": "aspect_ratio", "value": "9:16" }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "Authorization", "value": "Bearer {{$env.CAPCUT_API_KEY}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        }
+      },
+      "id": "7",
+      "name": "CapCut Create Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1750, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.videoenhancer.ai/enhance",
+        "method": "POST",
+        "sendBody": true,
+        "jsonBody": true,
+        "bodyParametersUi": {
+          "parameter": [
+            { "name": "video_url", "value": "={{$json[\"body\"][\"video_url\"]}}" },
+            { "name": "enhancements", "value": "[\"upscale_4k\",\"color_correction\",\"denoise\"]" }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            { "name": "Authorization", "value": "Bearer {{$env.VIDEO_ENHANCER_KEY}}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        }
+      },
+      "id": "8",
+      "name": "Video Enhancer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "chatId": "={{$env.TELEGRAM_CHAT_ID}}",
+        "text": "",
+        "additionalFields": {
+          "file": "={{$json[\"body\"][\"video_url\"]}}"
+        }
+      },
+      "id": "9",
+      "name": "Telegram Send Video",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [2250, 300],
+      "credentials": { "telegramApi": { "id": "telegram_credential", "name": "Telegram" } }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": { "main": [[{ "node": "Loop 3 Videos", "type": "main", "index": 0 }]] },
+    "Loop 3 Videos": { "main": [[{ "node": "Trend Analysis", "type": "main", "index": 0 }]] },
+    "Trend Analysis": { "main": [[{ "node": "OpenAI Script", "type": "main", "index": 0 }]] },
+    "OpenAI Script": { "main": [[{ "node": "ElevenLabs Voice", "type": "main", "index": 0 }]] },
+    "ElevenLabs Voice": { "main": [[{ "node": "Pexels Media", "type": "main", "index": 0 }]] },
+    "Pexels Media": { "main": [[{ "node": "CapCut Create Video", "type": "main", "index": 0 }]] },
+    "CapCut Create Video": { "main": [[{ "node": "Video Enhancer", "type": "main", "index": 0 }]] },
+    "Video Enhancer": { "main": [[{ "node": "Telegram Send Video", "type": "main", "index": 0 }]] }
+  }
+}
