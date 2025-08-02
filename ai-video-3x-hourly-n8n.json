@@ -1,6 +1,5 @@
-{
-  "name": "AI Video 3x Hourly",
-  "nodes": [
+": "AI Video 3x Hourly",
+  "nodes" [
     {
       "parameters": {
         "rule": {
@@ -135,14 +134,7 @@
         },
         "headerParametersUi": {
           "parameter": [
-            { "name": "Authorization", "value": "Bearer {{$env.CAPCUT_API_KEY}}" },
-            { "name": "Content-Type", "value": "application/json" }
-          ]
-        }
-      },
-      "id": "7",
-      "name": "CapCut Create Video",
-      "type": "n8n-nodes-base.httpRequest",
+            { "name": "Authorization", "value": "Bearer {{$env.CAPCUT_API_KEY}}" }      "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 1,
       "position": [1750, 300]
     },
@@ -193,8 +185,7 @@
     "Trend Analysis": { "main": [[{ "node": "OpenAI Script", "type": "main", "index": 0 }]] },
     "OpenAI Script": { "main": [[{ "node": "ElevenLabs Voice", "type": "main", "index": 0 }]] },
     "ElevenLabs Voice": { "main": [[{ "node": "Pexels Media", "type": "main", "index": 0 }]] },
-    "Pexels Media": { "main": [[{ "node": "CapCut Create Video", "type": "main", "index": 0 }]] },
-    "CapCut Create Video": { "main": [[{ "node": "Video Enhancer", "type": "main", "index": 0 }]] },
-    "Video Enhancer": { "main": [[{ "node": "Telegram Send Video", "type": "main", "index": 0 }]] }
+},
+    "Video Enhancer": }
   }
 }
